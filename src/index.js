@@ -2,31 +2,28 @@
 
 // https://stackoverflow.com/questions/15734049/invert-rotation-of-parent-in-the-child-so-the-child-appears-unrotated-in-the-wo
 
-import {Mesh, MeshBasicMaterial, DoubleSide, FlatShading, AmbientLight, DirectionalLight, DirectionalLightHelper, CameraHelper, Vector2, CylinderGeometry, Object3D, Raycaster, Vector3} from 'three'
+import {Mesh, MeshBasicMaterial, DoubleSide, FlatShading, Vector2, CylinderGeometry, Object3D, Raycaster, Vector3} from 'three'
 import recast from 'recast'
 
 import {recastConfig, maxAgents} from './config'
 import {Game} from './core/game'
 import {loadObj} from './core/load'
-import {Recast as RecastPlugin} from './plugin/recast'
 import StatsPlugin from './plugin/stats'
-
-RecastPlugin(Game)
+import {Light as LightPlugin} from './plugin/light'
 
 let game
 let agentBodies = new Map()
 let hidables = []
 
+LightPlugin(Game)
+
 window.onload = async function() {
-    
     game = new Game(document.body)
 
     if (__DEV__) {
         game.registerPlugin(new StatsPlugin())
     }
 
-    game.recast.init()
-    
     await game.load()
     
     const tree = await loadObj('assets/tree')
@@ -35,12 +32,7 @@ window.onload = async function() {
         hidables.push(treeMesh.uuid)
     }
     
-    console.log(tree)
-    
     game.scene.add(tree)
-    
-    const light = new AmbientLight(0x404040)
-    game.scene.add(light)
     
     const {agentRadius, agentHeight} = recastConfig
     
@@ -74,25 +66,8 @@ window.onload = async function() {
         game.scene.add(agent)
     }
     
-    console.log(agent.position)
-    
-    const directionalLight = new DirectionalLight(0xffffff, 0.5)
-    directionalLight.position.set(agent.position.x, agent.position.y+10, agent.position.z+10)
-    directionalLight.castShadow = true
-    game.scene.add(directionalLight)
-
-    directionalLight.shadow.mapSize.width = 512  // default
-    directionalLight.shadow.mapSize.height = 512 // default
-    directionalLight.shadow.camera.near = 0.5    // default
-    directionalLight.shadow.camera.far = 500     // default
-
-    directionalLight.target = agent
-    
-    const helper = new DirectionalLightHelper(directionalLight, 5)
-    game.scene.add(helper)
-    
-    const shadowHelper = new CameraHelper(directionalLight.shadow.camera)
-    game.scene.add(shadowHelper)
+    game.addAmbientLight(0x404040)
+    const directionalLight = game.addDirectionalLight(0xffffff, 0.5, true, agent.position.clone().add(0, 10, 10), agent)
     
     recast.vent.on('update', function (agents) {
         for (let agent of agents) {

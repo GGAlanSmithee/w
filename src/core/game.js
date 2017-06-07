@@ -82,13 +82,13 @@ class Game {
     
     render() {
         for (const plugin of this.plugins) {
-            plugin.onBeforeRender()
+            plugin.onBeforeRender(this)
         }
         
         this.renderer.render(this.scene, this.camera)
         
         for (const plugin of this.plugins) {
-            plugin.onAfterRender()
+            plugin.onAfterRender(this)
         }
     }
 }

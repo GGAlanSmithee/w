@@ -1,7 +1,7 @@
 /*globals document*/
 
 import DOMStats from 'stats.js'
-    
+
 class Stats {
     constructor() {
         this.stats = new DOMStats()
