@@ -2,14 +2,14 @@
 
 // https://stackoverflow.com/questions/15734049/invert-rotation-of-parent-in-the-child-so-the-child-appears-unrotated-in-the-wo
 
-import {Mesh, MeshBasicMaterial, DoubleSide, FlatShading, AmbientLight, DirectionalLight, Vector2, CylinderGeometry, Object3D, Raycaster, Vector3} from 'three'
+import {Mesh, MeshBasicMaterial, DoubleSide, FlatShading, AmbientLight, DirectionalLight, DirectionalLightHelper, CameraHelper, Vector2, CylinderGeometry, Object3D, Raycaster, Vector3} from 'three'
 import recast from 'recast'
-import Stats from 'stats.js'
 
 import {recastConfig, maxAgents} from './config'
 import {Game} from './core/game'
 import {loadObj} from './core/load'
 import {Recast as RecastPlugin} from './plugin/recast'
+import StatsPlugin from './plugin/stats'
 
 RecastPlugin(Game)
 
@@ -18,17 +18,18 @@ let agentBodies = new Map()
 let hidables = []
 
 window.onload = async function() {
-    const stats = new Stats()
-    stats.showPanel(1) // 0: fps, 1: ms, 2: mb, 3+: custom
-    document.body.appendChild(stats.dom)
     
     game = new Game(document.body)
+
+    if (__DEV__) {
+        game.registerPlugin(new StatsPlugin())
+    }
 
     game.recast.init()
     
     await game.load()
     
-    const tree = await loadObj('assets/tree.obj')
+    const tree = await loadObj('assets/tree')
     
     for (let treeMesh of tree.children) {
         hidables.push(treeMesh.uuid)
@@ -40,13 +41,6 @@ window.onload = async function() {
     
     const light = new AmbientLight(0x404040)
     game.scene.add(light)
-    
-    const directionalLight = new DirectionalLight(0xffffff, 0.5)
-    directionalLight.position.set(0, 1, 0)
-    game.scene.add(directionalLight)
-
-    const cameraTarget = new Object3D()
-    game.scene.add(cameraTarget)
     
     const {agentRadius, agentHeight} = recastConfig
     
@@ -70,6 +64,8 @@ window.onload = async function() {
         let agentGeometry = new CylinderGeometry(agentRadius, agentRadius, agentHeight, 16)
         agentBody = new Mesh(agentGeometry, new MeshBasicMaterial({ color: '#FF0000' }))
         agentBody.position.y = agentHeight/2
+        agentBody.castShadow = true
+        agentBody.receiveShadow = false
         
         agent = new Object3D()
         agent.add(agentBody)
@@ -77,6 +73,26 @@ window.onload = async function() {
         agentBodies.set(agentId, agent)
         game.scene.add(agent)
     }
+    
+    console.log(agent.position)
+    
+    const directionalLight = new DirectionalLight(0xffffff, 0.5)
+    directionalLight.position.set(agent.position.x, agent.position.y+10, agent.position.z+10)
+    directionalLight.castShadow = true
+    game.scene.add(directionalLight)
+
+    directionalLight.shadow.mapSize.width = 512  // default
+    directionalLight.shadow.mapSize.height = 512 // default
+    directionalLight.shadow.camera.near = 0.5    // default
+    directionalLight.shadow.camera.far = 500     // default
+
+    directionalLight.target = agent
+    
+    const helper = new DirectionalLightHelper(directionalLight, 5)
+    game.scene.add(helper)
+    
+    const shadowHelper = new CameraHelper(directionalLight.shadow.camera)
+    game.scene.add(shadowHelper)
     
     recast.vent.on('update', function (agents) {
         for (let agent of agents) {
@@ -121,8 +137,6 @@ window.onload = async function() {
     	}
     	
     	oldTime = newTime
-    	
-    	stats.begin()
 
     	game.render()
     	
@@ -140,9 +154,9 @@ window.onload = async function() {
         game.camera.position.y += agentDelta.y
         game.camera.position.z += agentDelta.z
     	
-     	hideBlockingObstacles(game.camera)
+    	directionalLight.position.set(agent.position.x, agent.position.y+10, agent.position.z+10)
     	
-    	stats.end()
+     	hideBlockingObstacles(game.camera)
     })()
 }
 
