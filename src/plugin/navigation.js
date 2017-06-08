@@ -5,7 +5,6 @@ import {recastConfig} from '../config'
 const {agentRadius, agentHeight} = recastConfig
 
 export const Navigation = (Game) => {
-    Game.prototype
     Game.prototype.addNavmeshAgent = function(color) {
         var id = recast.addAgent({
                      position: {

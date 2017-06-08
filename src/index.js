@@ -77,17 +77,7 @@ window.onload = async function() {
     
     document.addEventListener('mousemove', onMouseMove)
     document.addEventListener('keyup', onKeyUp)
-    document.addEventListener('mouseup', e => {
-        if (e.which !== 1) { // left moues button
-            return true
-        }
-        
-        e.preventDefault()
-
-        setAgentsTargetToCurrentMousePosition()
-
-        return false
-    }, false)
+    document.addEventListener('mouseup', onMouseUp, {passive: true})
     
     let delta
     let oldTime
@@ -128,9 +118,9 @@ window.onload = async function() {
 }
 
 const raycaster = new Raycaster()
-const mouse = new Vector2()
+const mouse     = new Vector2()
 
-function onMouseMove(e) {
+const onMouseMove = e => {
     const rect = e.target.getBoundingClientRect()
     
     const mouseX = e.clientX - rect.left
@@ -140,19 +130,29 @@ function onMouseMove(e) {
  	mouse.y = -(mouseY / window.innerHeight) * 2 + 1
 }
 
-function onKeyUp(e) {
+const onKeyUp = e => {
     e.preventDefault()
 	e.stopPropagation()
 	
-	if (e.keyCode === 49) { // 1
-	   // setAgentsTargetToCurrentMousePosition()
-	} else if (e.keyCode === 50) { // 2
+	if (e.keyCode === 50) { // 2
 	    addDynamicObstacleAtCurrentMousePosition()
 	} else if (e.keyCode === 51) { // 3
 	    removeDynamicObstacle()
 	} else if (e.keyCode === 52) { // 4
 	   addZone()
  	}
+}
+
+const onMouseUp = e => {
+    if (e.which !== 1) { // left moues button
+        return true
+    }
+    
+    e.preventDefault()
+
+    setAgentsTargetToCurrentMousePosition()
+
+    return false
 }
 
 const getMouseIntersection = () => {
