@@ -44,6 +44,7 @@ class Game {
         const [object] = await Promise.all([loadObj(levelConfig.navMesh), loadNavmesh(levelConfig.type, levelConfig.navMesh)])
         object.receiveShadow = true
         
+        this.terrain = object
         this.scene.add(object)
     
         recast.initCrowd(1000, 1.0)

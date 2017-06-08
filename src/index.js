@@ -2,20 +2,25 @@
 
 // https://stackoverflow.com/questions/15734049/invert-rotation-of-parent-in-the-child-so-the-child-appears-unrotated-in-the-wo
 
-import {Mesh, MeshBasicMaterial, DoubleSide, FlatShading, Vector2, CylinderGeometry, Object3D, Raycaster, Vector3} from 'three'
+import {Mesh, MeshBasicMaterial, DoubleSide, FlatShading, Vector2, CylinderGeometry, Raycaster, Vector3} from 'three'
 import recast from 'recast'
 
-import {recastConfig, maxAgents} from './config'
+import {maxAgents} from './config'
 import {Game} from './core/game'
 import {loadObj} from './core/load'
 import StatsPlugin from './plugin/stats'
 import {Light as LightPlugin} from './plugin/light'
+import {Navigation as NavigationPlugin} from './plugin/navigation'
 
 let game
-let agentBodies = new Map()
+let agents = new Map()
 let hidables = []
 
 LightPlugin(Game)
+NavigationPlugin(Game)
+
+const heightRaycaster = new Raycaster()
+const downDirection = new Vector3(0, -1, 0).normalize()
 
 window.onload = async function() {
     game = new Game(document.body)
@@ -34,52 +39,39 @@ window.onload = async function() {
     
     game.scene.add(tree)
     
-    const {agentRadius, agentHeight} = recastConfig
-    
     let agent = null
-    let agentBody = null
     for (let i = 0; i < maxAgents; ++i) {
-        var agentId = recast.addAgent({
-                          position: {
-                              x: -25,
-                              y: -1,
-                              z: -5
-                          },
-                          radius: agentRadius,
-                          height: agentHeight,
-                          maxAcceleration: 0.5,
-                          maxSpeed: 1.0,
-                          updateFlags: 0,// recast.CROWD_OBSTACLE_AVOIDANCE & recast.CROWD_ANTICIPATE_TURNS & recast.CROWD_OPTIMIZE_TOPO & recast.CROWD_SEPARATION,
-                          separationWeight: 20.0
-                      })
-    
-        let agentGeometry = new CylinderGeometry(agentRadius, agentRadius, agentHeight, 16)
-        agentBody = new Mesh(agentGeometry, new MeshBasicMaterial({ color: '#FF0000' }))
-        agentBody.position.y = agentHeight/2
-        agentBody.castShadow = true
-        agentBody.receiveShadow = false
+        const {id: agentId, agent: navmeshAgent} = game.addNavmeshAgent()
         
-        agent = new Object3D()
-        agent.add(agentBody)
+        agents.set(agentId, navmeshAgent)
         
-        agentBodies.set(agentId, agent)
-        game.scene.add(agent)
+        agent = navmeshAgent
     }
     
     game.addAmbientLight(0x404040)
-    const directionalLight = game.addDirectionalLight(0xffffff, 0.5, true, agent.position.clone().add(0, 10, 10), agent)
+    const directionalLight = game.addDirectionalLight(0xffffff, 0.5, true, agent.position.clone().add(new Vector3(0, 10, 10)), agent)
     
-    recast.vent.on('update', function (agents) {
-        for (let agent of agents) {
-            let agentBody = agentBodies.get(agent.idx)
+    recast.vent.on('update', recastAgents => {
+        for (let recastAgent of recastAgents) {
+            let agent = agents.get(recastAgent.idx)
             
-            let angle = Math.atan2(-agent.velocity.z, agent.velocity.x)
+            let angle = Math.atan2(-recastAgent.velocity.z, recastAgent.velocity.x)
             
-            if (Math.abs(agentBody.rotation.y - angle) > 0) {
-                agentBody.rotation.y = angle
+            if (Math.abs(agent.rotation.y - angle) > 0) {
+                agent.rotation.y = angle
             }
             
-            agentBody.position.set(agent.position.x, agent.position.y, agent.position.z)
+            heightRaycaster.set(new Vector3(recastAgent.position.x, recastAgent.position.y+10, recastAgent.position.z), downDirection)
+            
+            const [intersection] = heightRaycaster.intersectObject(game.terrain, true)
+            
+            if (intersection) {
+                const {point} = intersection
+                
+                agent.position.set(recastAgent.position.x, point.y, recastAgent.position.z)
+            } else {
+                agent.position.set(recastAgent.position.x, recastAgent.position.y, recastAgent.position.z)
+            }
         }
     })
     
@@ -168,7 +160,7 @@ const getMouseIntersection = () => {
 	
 	raycaster.setFromCamera(mouse, game.camera)
 	
-	const [intersection] = raycaster.intersectObject(game.scene, true)
+	const [intersection] = raycaster.intersectObject(game.terrain, true)
 	
 	return intersection
 }
@@ -178,7 +170,7 @@ const getMouseIntersectionPoint = () => {
 	
 	raycaster.setFromCamera(mouse, game.camera)
 	
-	const [intersection] = raycaster.intersectObject(game.scene, true)
+	const [intersection] = raycaster.intersectObject(game.terrain, true)
 	
 	if (intersection === undefined) {
 	    return null
@@ -196,7 +188,7 @@ function setAgentsTargetToCurrentMousePosition() {
 	    return
 	}
 	
-	for (let agentId of agentBodies.keys()) {
+	for (let agentId of agents.keys()) {
 	    recast.crowdRequestMoveTarget(agentId, point.x, point.y, point.z)
 	}
 }
