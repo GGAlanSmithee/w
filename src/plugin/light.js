@@ -4,8 +4,6 @@ export const Light = (Game) => {
     Game.prototype.addAmbientLight = function(color) {
         const ambientLight = new AmbientLight(color)
         
-        console.log(this)
-        
         this.scene.add(ambientLight)
         
         return ambientLight

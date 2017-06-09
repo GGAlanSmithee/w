@@ -14,7 +14,9 @@ import {Navigation as NavigationPlugin} from './plugin/navigation'
 
 let game
 let agents = new Map()
+
 let hidables = []
+let hiddenObjects = []
 
 LightPlugin(Game)
 NavigationPlugin(Game)
@@ -79,6 +81,10 @@ window.onload = async function() {
     document.addEventListener('keyup', onKeyUp)
     document.addEventListener('mouseup', onMouseUp, {passive: true})
     
+    setInterval(() => {
+        showNonBlockingObstacles()
+    }, 100)
+    
     let delta
     let oldTime
     let newTime
@@ -134,21 +140,17 @@ const onKeyUp = e => {
     e.preventDefault()
 	e.stopPropagation()
 	
-	if (e.keyCode === 50) { // 2
+	if (e.keyCode === 49) { // 1
 	    addDynamicObstacleAtCurrentMousePosition()
-	} else if (e.keyCode === 51) { // 3
+	} else if (e.keyCode === 50) { // 2
 	    removeDynamicObstacle()
-	} else if (e.keyCode === 52) { // 4
-	   addZone()
- 	}
+	}
 }
 
 const onMouseUp = e => {
     if (e.which !== 1) { // left moues button
         return true
     }
-    
-    e.preventDefault()
 
     setAgentsTargetToCurrentMousePosition()
 
@@ -235,7 +237,7 @@ function removeDynamicObstacle() {
     game.scene.remove(intersection.object)
 }
 
-function hideBlockingObstacles(camera) {
+const hideBlockingObstacles = camera => {
     game.camera.updateMatrixWorld()
 	
 	raycaster.setFromCamera(new Vector2(), game.camera)
@@ -257,41 +259,39 @@ function hideBlockingObstacles(camera) {
  	    return
  	}
 
+    hiddenObjects.push(object)
+    
  	material.visible = false
 }
 
-function addZone() {
-    const intersection = getMouseIntersection()
+const showNonBlockingObstacles = camera => {
+    game.camera.updateMatrixWorld()
 	
-	if (intersection === undefined) {
+	raycaster.setFromCamera(new Vector2(), game.camera)
+	
+	const intersections = raycaster.intersectObjects(hiddenObjects, true)
+	
+	if (intersections.length === 0) {
+	    for (const hiddenObject of hiddenObjects) {
+	        hiddenObject.material.visible = true
+	    }
+	    
+	    hiddenObjects = []
+	    
 	    return
+	} 
+	
+	let i = hiddenObjects.length
+	while (i--) {
+	    const hiddenObject = hiddenObjects[i]
+	    
+	    const blocking = !!intersections.find(i => i.object.uuid === hiddenObject.uuid)
+	    
+	    if (blocking) {
+	        continue
+        }
+        
+        hiddenObject.material.visible = true
+        hiddenObjects.splice(i, 1)
 	}
-	
-	const geometry = intersection.object.geometry
-	const point = intersection.point
-	
- 	console.log(geometry)
-	
-	recast.setPolyFlags(point.x, point.y, point.z, 1, 1, 1, recast.FLAG_DISABLED)
-	
-// 	recast.queryPolygons(point.x, point.y, point.z, 1, 1, 1,
-//                          1,
-//                          recast.cb(polygons => {
-//                              console.log(polygons)
-//                             //  for (const polygon of polygons) {
-//                             //      console.log(polygon)
-//                             //  }
-//                             //  for (var i = 0; i < polygons.length; i++) {
-//                                  // removing
-//                                  // if ( event.ctrlKey ) {
-
-//                                  //     editor.currentZone.removePolygon( polygons[i] );
-
-//                                  // // adding
-//                                  // } else if ( event.shiftKey ) {
-
-//                                  //     editor.currentZone.addPolygon( polygons[i] );
-//                                  // }
-//                             //  }
-//                          }))
 }

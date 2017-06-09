@@ -28,10 +28,10 @@ const recastConfig = {
     cellHeight,
     agentMaxClimb,
     agentMaxSlope,
-    // regionMinSize,
-    // regionMergeSize,
-    // edgeMaxLen,
-    // edgeMaxError
+    regionMinSize,
+    regionMergeSize,
+    edgeMaxLen,
+    edgeMaxError
 }
 
 const maxAgents = 1
@@ -42,7 +42,7 @@ const navmeshTypes = {
 }
 
 const levelConfig = {
-    navmeshType: navmeshTypes.tiled,
+    navmeshType: navmeshTypes.solo,
     navMesh: 'assets/ground'
 }
 
