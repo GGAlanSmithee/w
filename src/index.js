@@ -3,6 +3,7 @@
 // https://stackoverflow.com/questions/15734049/invert-rotation-of-parent-in-the-child-so-the-child-appears-unrotated-in-the-wo
 
 import {Mesh, MeshBasicMaterial, DoubleSide, FlatShading, Vector2, CylinderGeometry, Raycaster, Vector3} from 'three'
+import MainLoop from 'mainloop'
 import recast from 'recast'
 
 import {maxAgents} from './config'
@@ -85,25 +86,8 @@ window.onload = async function() {
         showNonBlockingObstacles()
     }, 100)
     
-    let delta
-    let oldTime
-    let newTime
-    
-    (function loop() {
-    	window.requestAnimationFrame(loop)
-    	
-    	newTime = Date.now()
-    	
-    	delta = newTime - oldTime
-    	if (delta > 17) {
-    	    delta = 17
-    	}
-    	
-    	oldTime = newTime
-
-    	game.render()
-    	
-    	let posBefore = new Vector3(agent.position.x, agent.position.y, agent.position.z)
+    const update = (delta) => {
+        let posBefore = new Vector3(agent.position.x, agent.position.y, agent.position.z)
     	
     	recast.crowdUpdate(delta / 100)
     	recast.crowdGetActiveAgents()
@@ -120,7 +104,13 @@ window.onload = async function() {
     	directionalLight.position.set(agent.position.x, agent.position.y+10, agent.position.z+10)
     	
      	hideBlockingObstacles(game.camera)
-    })()
+    }
+    
+    const render = (/*interpolationPercentage*/) => {
+        game.render()
+    }
+    
+    MainLoop.setUpdate(update).setDraw(render).start()
 }
 
 const raycaster = new Raycaster()

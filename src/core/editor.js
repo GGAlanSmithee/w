@@ -2,6 +2,7 @@
 
 import {WebGLRenderer, Scene, PerspectiveCamera, Vector3, PCFSoftShadowMap, MOUSE} from 'three'
 import OrbitControls from 'orbit-controls-es6'
+import {EntityManager} from 'gg-entities'
 import recast from 'recast'
 
 import {recastConfig, levelConfig} from '../config'
@@ -15,6 +16,8 @@ class Game {
         this.camera = null
         
         this.plugins = []
+        
+        this.entityManager = new EntityManager(20000)
     }
     
     registerPlugin(plugin) {

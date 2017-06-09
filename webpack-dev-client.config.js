@@ -54,7 +54,12 @@ const appConfig = {
     externals: {
         three: 'THREE',
         recast: 'recast'
+    },
+    resolve: {
+    alias: {
+      'mainloop': 'mainloop.js'
     }
+  }
 }
 
 module.exports = appConfig
