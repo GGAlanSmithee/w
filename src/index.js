@@ -104,6 +104,8 @@ window.onload = async function() {
     	directionalLight.position.set(agent.position.x, agent.position.y+10, agent.position.z+10)
     	
      	hideBlockingObstacles(game.camera)
+     	
+     	game.update()
     }
     
     const render = (/*interpolationPercentage*/) => {
