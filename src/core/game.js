@@ -5,7 +5,7 @@ import OrbitControls from 'orbit-controls-es6'
 import recast from 'recast'
 
 import {recastConfig, levelConfig} from '../config'
-import {loadObj, loadNavmesh} from './load'
+import {loadObj, loadCubeTexture, loadNavmesh} from './load'
 
 const heightRaycaster = new Raycaster()
 const downDirection = new Vector3(0, -1, 0).normalize()
@@ -30,8 +30,8 @@ class Game {
         }
         
         this.renderer = new WebGLRenderer({antialias: true})
+        this.renderer.setClearColor(0x6495ED)
         this.renderer.setSize(window.innerWidth, window.innerHeight)
-        
         
         this.renderer.shadowMap.enabled = true
         this.renderer.shadowMap.type = PCFSoftShadowMap
@@ -44,7 +44,16 @@ class Game {
     
         this.scene = new Scene()
         
-        this.scene.fog = new FogExp2(0x444444, 0.005)
+        this.scene.background = loadCubeTexture('assets/', [
+                            		'px.jpg',
+                            		'nx.jpg',
+                            		'py.jpg',
+                            		'ny.jpg',
+                            		'pz.jpg',
+                            		'nz.jpg'
+                            	])
+                            	
+        this.scene.fog = new FogExp2(0x000044, 0.005)
         
         const [object] = await Promise.all([loadObj(levelConfig.navMesh), loadNavmesh(levelConfig.type, levelConfig.navMesh)])
         object.receiveShadow = true

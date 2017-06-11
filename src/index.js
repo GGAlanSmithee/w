@@ -176,8 +176,6 @@ const getMouseIntersectionPoint = () => {
 function setAgentsTargetToCurrentMousePosition() {
 	const point = getMouseIntersectionPoint()
 	
-	console.log(point)
-	
 	if (point === null) {
 	    return
 	}

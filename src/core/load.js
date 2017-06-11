@@ -1,13 +1,13 @@
 /*global window*/
 
-import {OBJLoader, Mesh, DoubleSide} from 'three'
+import {OBJLoader, CubeTextureLoader, Mesh, DoubleSide} from 'three'
 import MTLLoader from 'three-mtl-loader'
 import recast from 'recast'
 import {navmeshTypes} from '../config'
 
-const mtlLoader = new MTLLoader()
-// mtlLoader.setBaseUrl('/path/to/assets/');
-const loader = new OBJLoader()
+const loader            = new OBJLoader()
+const mtlLoader         = new MTLLoader()
+const cubeTextureLoader = new CubeTextureLoader()
 
 const loadObj = (name, receiveShadow = true, castShadow = false) => {
     return new Promise((resolve, reject) => {
@@ -20,7 +20,6 @@ const loadObj = (name, receiveShadow = true, castShadow = false) => {
     }).then(object => {
         object.traverse((child) => {
             if (child instanceof Mesh) {
-                console.log(child)
                 child.material.side = DoubleSide
                 child.receiveShadow = receiveShadow
                 child.castShadow    = castShadow
@@ -32,6 +31,8 @@ const loadObj = (name, receiveShadow = true, castShadow = false) => {
         console.error(err)
     })
 }
+
+const loadCubeTexture = (path, textures) => cubeTextureLoader.setPath(path).load(textures)
 
 const loadNavmesh = (type = navmeshTypes.tiled, name, useCache = false) => {
     const {localStorage} = window
@@ -65,4 +66,4 @@ const loadNavmesh = (type = navmeshTypes.tiled, name, useCache = false) => {
     })
 }
 
-export {loadObj, loadNavmesh}
+export {loadObj, loadCubeTexture, loadNavmesh}
