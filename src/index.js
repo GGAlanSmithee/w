@@ -234,7 +234,7 @@ const hideBlockingObstacles = camera => {
 	
 	const [intersection] = raycaster.intersectObject(game.scene, true)
 	
-	if (intersection === null) {
+	if (intersection === undefined) {
 	    return
 	}
 	
