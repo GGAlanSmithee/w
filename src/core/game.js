@@ -1,6 +1,6 @@
 /*global window*/
 
-import {WebGLRenderer, Scene, PerspectiveCamera, Vector3, PCFSoftShadowMap, Raycaster, MOUSE} from 'three'
+import {WebGLRenderer, Scene, PerspectiveCamera, Vector3, PCFSoftShadowMap, Raycaster, FogExp2, MOUSE} from 'three'
 import OrbitControls from 'orbit-controls-es6'
 import recast from 'recast'
 
@@ -32,6 +32,7 @@ class Game {
         this.renderer = new WebGLRenderer({antialias: true})
         this.renderer.setSize(window.innerWidth, window.innerHeight)
         
+        
         this.renderer.shadowMap.enabled = true
         this.renderer.shadowMap.type = PCFSoftShadowMap
         
@@ -43,6 +44,8 @@ class Game {
     
         this.scene = new Scene()
         
+        this.scene.fog = new FogExp2(0x444444, 0.005)
+        
         const [object] = await Promise.all([loadObj(levelConfig.navMesh), loadNavmesh(levelConfig.type, levelConfig.navMesh)])
         object.receiveShadow = true
         
@@ -52,7 +55,7 @@ class Game {
         recast.initCrowd(1000, 1.0)
         
         this.camera = new PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000)
-        this.camera.position.y = 25
+        this.camera.position.y = 50
         this.camera.lookAt(new Vector3(0, 0, 0))
         
         this.controls = new OrbitControls(this.camera, this.renderer.domElement)
@@ -68,7 +71,7 @@ class Game {
         this.controls.enabled = true
         this.controls.enablePan = false
         this.controls.enableKeys = false
-        this.controls.maxDistance = 25
+        this.controls.maxDistance = 50
         this.controls.minDistance = 3
     }
     

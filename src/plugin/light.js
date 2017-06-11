@@ -13,10 +13,18 @@ export const Light = (Game) => {
         const directionalLight = new DirectionalLight(color, intensity)
         
         directionalLight.castShadow = castShadow
-        directionalLight.shadow.mapSize.width = 512  // default
-        directionalLight.shadow.mapSize.height = 512 // default
-        directionalLight.shadow.camera.near = 0.5    // default
-        directionalLight.shadow.camera.far = 500     // default
+        directionalLight.shadow.mapSize.width  =  4096
+        directionalLight.shadow.mapSize.height =  4096
+        
+        directionalLight.shadow.bias           =  0.0001
+        directionalLight.shadow.radius         =  1.1
+        
+        directionalLight.shadow.camera.top     = -100
+        directionalLight.shadow.camera.right   =  100
+        directionalLight.shadow.camera.bottom  =  100
+        directionalLight.shadow.camera.left    = -100
+        directionalLight.shadow.camera.near    =  0.5
+        directionalLight.shadow.camera.far     =  500
         
         directionalLight.position.set(position.x, position.y, position.z)
         

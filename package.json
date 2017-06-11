@@ -42,6 +42,7 @@
     "recastjs": "^0.1.16",
     "stats.js": "^0.17.0",
     "three": "^0.85.2",
+    "three-mtl-loader": "^1.0.1",
     "three-obj-loader": "^1.1.2",
     "webpack-dev-middleware": "^1.10.2"
   }

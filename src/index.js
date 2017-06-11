@@ -34,7 +34,7 @@ window.onload = async function() {
 
     await game.load()
     
-    const tree = await loadObj('assets/tree')
+    const tree = await loadObj('assets/tree', true, true)
     
     for (let treeMesh of tree.children) {
         hidables.push(treeMesh.uuid)
@@ -51,8 +51,8 @@ window.onload = async function() {
         agent = navmeshAgent
     }
     
-    game.addAmbientLight(0x404040)
-    const directionalLight = game.addDirectionalLight(0xffffff, 0.5, true, agent.position.clone().add(new Vector3(0, 10, 10)), agent)
+    game.addAmbientLight(0xAAAAAA)
+    const directionalLight = game.addDirectionalLight(0xffffff, 0.5, true, agent.position.clone().add(new Vector3(0, 250, 150)), agent)
     
     recast.vent.on('update', recastAgents => {
         for (let recastAgent of recastAgents) {
@@ -101,7 +101,7 @@ window.onload = async function() {
         game.camera.position.y += agentDelta.y
         game.camera.position.z += agentDelta.z
     	
-    	directionalLight.position.set(agent.position.x, agent.position.y+10, agent.position.z+10)
+    	directionalLight.position.set(agent.position.x, agent.position.y+250, agent.position.z+150)
     	
      	hideBlockingObstacles(game.camera)
      	

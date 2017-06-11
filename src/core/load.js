@@ -1,21 +1,29 @@
 /*global window*/
 
 import {OBJLoader, Mesh, DoubleSide} from 'three'
+import MTLLoader from 'three-mtl-loader'
 import recast from 'recast'
 import {navmeshTypes} from '../config'
 
+const mtlLoader = new MTLLoader()
+// mtlLoader.setBaseUrl('/path/to/assets/');
 const loader = new OBJLoader()
 
-const loadObj = (name) => {
+const loadObj = (name, receiveShadow = true, castShadow = false) => {
     return new Promise((resolve, reject) => {
-        loader.load(`${name}.obj`, (object) => {
-            resolve(object)
+        mtlLoader.load(`${name}.mtl`, materials => {
+            loader.setMaterials(materials)
+            loader.load(`${name}.obj`, object => {
+                resolve(object)
+            })
         })
     }).then(object => {
         object.traverse((child) => {
             if (child instanceof Mesh) {
+                console.log(child)
                 child.material.side = DoubleSide
-                child.receiveShadow = true
+                child.receiveShadow = receiveShadow
+                child.castShadow    = castShadow
             }
         })
         
