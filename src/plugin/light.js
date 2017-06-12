@@ -9,7 +9,7 @@ export const Light = (Game) => {
         return ambientLight
     }
     
-    Game.prototype.addDirectionalLight = function(color, intensity, castShadow, position, target) {
+    Game.prototype.addDirectionalLight = function(color, intensity, castShadow, position, target, debug = __DEV__) {
         const directionalLight = new DirectionalLight(color, intensity)
         
         directionalLight.castShadow = castShadow
@@ -32,7 +32,7 @@ export const Light = (Game) => {
     
         directionalLight.target = target
         
-        if (__DEV__) {
+        if (debug) {
             const helper = new DirectionalLightHelper(directionalLight, 5)
             this.scene.add(helper)
             

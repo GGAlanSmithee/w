@@ -34,13 +34,24 @@ window.onload = async function() {
 
     await game.load()
     
-    const tree = await loadObj('assets/tree', true, true)
+    const tree = await loadObj('assets/tree_lowpoly', true, true)
     
     for (let treeMesh of tree.children) {
         hidables.push(treeMesh.uuid)
     }
     
     game.scene.add(tree)
+    
+    const tree2 = await loadObj('assets/tree_lowpoly', true, true)
+    
+    for (let treeMesh of tree2.children) {
+        hidables.push(treeMesh.uuid)
+    }
+    
+    tree2.position.set(55, 0, 45)
+    tree2.rotation.y = 25
+    
+    game.scene.add(tree2)
     
     let agent = null
     for (let i = 0; i < maxAgents; ++i) {
@@ -52,7 +63,7 @@ window.onload = async function() {
     }
     
     game.addAmbientLight(0xAAAAAA)
-    const directionalLight = game.addDirectionalLight(0xffffff, 0.5, true, agent.position.clone().add(new Vector3(0, 250, 150)), agent)
+    const directionalLight = game.addDirectionalLight(0xffffff, 0.5, true, agent.position.clone().add(new Vector3(0, 250, 150)), agent, false)
     
     recast.vent.on('update', recastAgents => {
         for (let recastAgent of recastAgents) {
@@ -227,6 +238,16 @@ function removeDynamicObstacle() {
     game.scene.remove(intersection.object)
 }
 
+const hideMaterial = (material) => {
+    if (!material.visible) {
+        return false
+	}
+
+ 	material.visible = false
+ 	
+ 	return true
+}
+
 const hideBlockingObstacles = camera => {
     game.camera.updateMatrixWorld()
 	
@@ -241,17 +262,25 @@ const hideBlockingObstacles = camera => {
  	const {object} = intersection
 	const {material, uuid} = object
 	
-	if (!material.visible) {
-	    return
-	}
-	
- 	if (hidables.find(h => h == uuid) == null)  {
+	if (!material ||hidables.find(h => h == uuid) == null) {
  	    return
  	}
-
-    hiddenObjects.push(object)
-    
- 	material.visible = false
+ 	
+ 	console.log(object)
+ 	
+ 	let wasVisible = false
+ 	
+	if (Array.isArray(material)) {
+	    for (const m of material) {
+	        wasVisible = hideMaterial(m)
+	    }
+	} else {
+    	wasVisible = hideMaterial(material)
+	}
+	
+	if (wasVisible) {
+        hiddenObjects.push(object)
+	}
 }
 
 const showNonBlockingObstacles = camera => {
@@ -263,7 +292,16 @@ const showNonBlockingObstacles = camera => {
 	
 	if (intersections.length === 0) {
 	    for (const hiddenObject of hiddenObjects) {
-	        hiddenObject.material.visible = true
+	        const {material} = hiddenObject
+	        
+	        if (Array.isArray(material)) {
+	            for (const m of material) {
+	                m.visible = true
+	            }
+	        } else {
+	            material.visible = true
+	        }
+	        
 	    }
 	    
 	    hiddenObjects = []
@@ -281,7 +319,17 @@ const showNonBlockingObstacles = camera => {
 	        continue
         }
         
-        hiddenObject.material.visible = true
+        const {material} = hiddenObject
+        
+        if (Array.isArray(material)) {
+            for (const m of material) {
+                m.visible = true
+            }
+        } else {
+            material.visible = true
+        }
+	        
+
         hiddenObjects.splice(i, 1)
 	}
 }
