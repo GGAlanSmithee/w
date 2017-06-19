@@ -12,9 +12,7 @@
     "networking"
   ],
   "scripts": {
-    "dev": "webpack",
-    "deploy": "webpack --config webpack.production.config.js",
-    "lint": "eslint --fix ./src/**/**.js"
+    "lint": "eslint --fix ./moba/**/**.js ./rpg/**/**.js ./rts/**/**.js"
   },
   "devDependencies": {
     "babel-core": "^6.25.0",

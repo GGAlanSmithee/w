@@ -1,6 +1,6 @@
 import recast from 'recast'
 import {CylinderGeometry, MeshBasicMaterial, Mesh, Object3D} from 'three'
-import {recastConfig} from '../config'
+import {recastConfig} from '../../config'
 
 const {agentRadius, agentHeight} = recastConfig
 

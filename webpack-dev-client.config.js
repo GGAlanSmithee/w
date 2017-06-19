@@ -9,14 +9,14 @@ const GLOBALS = {
     __DEV__: DEBUG
 }
 
-const appConfig = {
+const createAppConfig = (entry) => ({
     entry: {
         app: [
             'babel-polyfill',
             'webpack/hot/only-dev-server',
             'webpack-hot-middleware/client?reload=true',
-            path.resolve(__dirname, 'src/polyfill/index.js'),
-            path.resolve(__dirname, 'src/index.js')
+            path.resolve(__dirname, 'shared/polyfill/index.js'),
+            entry
         ]
     },
     output: {
@@ -56,10 +56,16 @@ const appConfig = {
         recast: 'recast'
     },
     resolve: {
-    alias: {
-      'mainloop': 'mainloop.js'
+        extensions: ['.js'],
+        mainFields: ['jsnext:main', 'module', 'main'],
+        modules: [
+            path.resolve(process.cwd(), 'shared'),
+            path.resolve(process.cwd(), 'node_modules')
+        ],
+        alias: {
+            'mainloop': 'mainloop.js'
+        }
     }
-  }
-}
+})
 
-module.exports = appConfig
+module.exports = createAppConfig
